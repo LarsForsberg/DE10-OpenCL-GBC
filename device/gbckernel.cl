@@ -1,7 +1,5 @@
 #define BLOCK_SIZE 16
 
-//__attribute__((num_compute_units(8)))
-
 __attribute((reqd_work_group_size(BLOCK_SIZE,BLOCK_SIZE,1)))
 __attribute((num_simd_work_items(4)))
 
