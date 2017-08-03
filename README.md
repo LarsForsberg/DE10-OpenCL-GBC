@@ -2,18 +2,22 @@
 
 ## Introduction
 
-Functional brain imaging is neuroimaging technique where the functionality of the brain is measured over time. Resting State fMRI (RS-fMRI) is a method where the brain's functionality is investigated during rest, i.e. when the subject is not performing an explicit task. The data consists of a series of 3D volumes, where the data points within a volume is called a "voxel" (instead of a "pixel").
+Functional brain imaging is a neuroimaging technique where the functionality of the brain is measured over time. Resting State fMRI (RS-fMRI) is a method where the brain's functionality is investigated during rest, i.e. when the subject is not performing an explicit task. The data consists of a series of 3D volumes, where the data points within a volume are called "voxels" (instead of "pixels").
 
-A common research field within RS-fMRI is functional connectivity, where the correlation between a "seed voxel" and all other voxels are measured. The result for a given seed voxel is a "seed map", showing the correlation level with all other voxels.
+A common research field within RS-fMRI is functional connectivity, where the temporal correlation between a "seed voxel" and all other voxels are measured. The result for a given seed voxel is a "seed map", showing the correlation level with all other voxels.
 
-For a given "seed map", the sum of all voxels correlating positively with the seed voxel will then give the degree of connectivity for the seed voxel. A low value indicates a low connectivity. By calculating the degree of connectivity for each voxel, a "Global Brain Connectivity" (GBC) map is obtained. A commonly used tool for GBC is AFNI's 3dTcorrMap.
+For a given "seed map", the sum of all voxels correlating positively with the seed voxel will then give the degree of connectivity for the seed voxel. A low value indicates a low connectivity, whereas a high value indicates a high level of connectivity. By calculating the degree of connectivity for each voxel, a "Global Brain Connectivity" (GBC) map is obtained. A commonly used tool for GBC is AFNI's 3dTcorrMap.
 
 This tool (DE10GBC) is an alternative GBC tool for running on a Terasic DE10-Standard, where the calculations are accelerated on the FPGA. A speed comparison show that DE10GBC on the Terasic DE10-Standard is faster than 3dTcorrMap on a MacBook Pro 2016 quad core, even when running the OpenMP version of 3dTCorrMap with 8 threads.
 
 ## Terasic DE10-Standard
 
 
-The Terasic DE10-Standard is a great low-powered development platform built around the largest Cyclone-V SoC with a dual-core ARM processor and a FPGA device with 110K LE. Terasic provides a BSP (Board Support Package) for Intel FPGA SDK OpenCL, making it a perfect entry board for OpenCL on FPGA. The current price is $350 ($259 academic price).
+The Terasic DE10-Standard is a great low-powered development platform built around the largest Cyclone-V SoC with a dual-core ARM processor and a FPGA device with 110K LE. Terasic provides a BSP (Board Support Package) for Intel FPGA SDK OpenCL, making it a perfect entry board for OpenCL on FPGA. The current price is $350 ($259 academic price):
+
+<http://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=167&No=1081>
+
+
 
 ## Installation
 
@@ -24,6 +28,7 @@ The following text assumes you have installed a valid OpenCL environment on a Li
   - gbc (the host file)
   - gbckernel.aocx (the device file) 
 
+Compiling from source is optional. You can also use the precompiled binaries found in the bin directory of this distribution.
 
 ### Installing the binaries
 
