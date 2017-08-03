@@ -1,0 +1,1 @@
+aoc -v --fp-relaxed --report --board de10_standard_sharedonly device/gbckernel.cl -o bin/gbckernel.aocx
