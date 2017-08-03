@@ -7,11 +7,7 @@
 #include "fslio.h"
 
 
-#define NVOXELS 80000
-#define NTIMES 192
 #define BLOCK_SIZE 16
-#define BLOCK_SIZE2 16
-#define FPGA 1
 
 short xsize, ysize, zsize, vsize;
 
@@ -49,7 +45,7 @@ int main(int argc,char* argv[]) {
   int x,y,z,t;
   int startseed;
   float value;
-  
+
   size_t global[2];
   size_t local[2];
   cl_int status;
@@ -58,7 +54,7 @@ int main(int argc,char* argv[]) {
   int nvoxels = 0;
 
   float* data;
-  
+
   if(argc<3 || argc>4) {
     printf("Usage: gbc input.nii output.nii\n");
     printf("       gbc input.nii mask.nii output.nii\n");
@@ -78,9 +74,9 @@ int main(int argc,char* argv[]) {
     printf("Output: %s\n",outputfilename);
     printf("Mask: %s\n",maskfilename);
   }
-  
 
-  
+
+
 
   if(argc==4) {
     mask = getImage(maskfilename);
@@ -90,9 +86,9 @@ int main(int argc,char* argv[]) {
 	nvoxels++;
     }
   }
-  
+
   data = getImage(inputfilename);
-  
+
   if(argc==3) {
     mask = (float*) malloc(sizeof(float)*xsize*ysize*zsize);
     for(i=0;i<xsize*ysize*xsize;i++) {
@@ -103,7 +99,7 @@ int main(int argc,char* argv[]) {
 
 
   imagebuffer = (float*) malloc(sizeof(float)*xsize*ysize*zsize);
-  
+
   printf("fMRI dimensions: %d %d %d %d\n",xsize,ysize,zsize,vsize);
   if(argc==3) {
     printf("Calculating mask.\n");
@@ -116,37 +112,37 @@ int main(int argc,char* argv[]) {
 	}
       }
     }
-  
+
     for(i=0;i<(xsize*ysize*zsize);i++) {
       if(mask[i] > 0) {
 	nvoxels++;
       }
     }
   }
-  
+
   printf("NVOXELS: %d\n",nvoxels);
 
   int nvoxelstotal = nvoxels+(16-nvoxels%BLOCK_SIZE);
   int ntimes = vsize;
   int ntimestotal = ntimes+(16-ntimes%BLOCK_SIZE);
-  
+
   printf("Initializing OpenCL\n");
   if(!init_opencl(nvoxelstotal,ntimestotal))
     return -1;
-  
+
   printf("Dimensions matrix 1: %dx%d\n",nvoxels,ntimes);
   printf("Dimensions matrix 2: %dx%d\n",nvoxelstotal,ntimestotal);
 
   matrix = (float*) malloc(sizeof(float)*nvoxels*ntimes);
   matrix2 = (float*) malloc(sizeof(float)*nvoxelstotal*ntimestotal);
-  gbcresult = (float*) malloc(sizeof(float)*nvoxelstotal*BLOCK_SIZE2);
+  gbcresult = (float*) malloc(sizeof(float)*nvoxelstotal*BLOCK_SIZE);
   finalvector = (float*) malloc(sizeof(float)*nvoxels);
 
   for(i=0;i<nvoxelstotal;i++) {
-    for(j=0;j<BLOCK_SIZE2;j++)
-      gbcresult[i*BLOCK_SIZE2+j] = 0;
+    for(j=0;j<BLOCK_SIZE;j++)
+      gbcresult[i*BLOCK_SIZE+j] = 0;
   }
-  
+
   printf("Creating matrix 1.\n");
   i=0;
   for(x=0;x<xsize;x++) {
@@ -162,7 +158,7 @@ int main(int argc,char* argv[]) {
       }
     }
   }
-  
+
   printf("Normalising matrix 1.\n");
   normalise(matrix,ntimes,nvoxels);
   printf("Creating matrix 2.\n");
@@ -176,11 +172,11 @@ int main(int argc,char* argv[]) {
     }
   }
   free(matrix);
-  
+
   printf("Writing to global memory.\n");
   clEnqueueWriteBuffer(queue, matrixmem, CL_TRUE, 0, sizeof(float)*nvoxelstotal*ntimestotal, matrix2, 0, NULL, NULL);
-  clEnqueueWriteBuffer(queue, gbcresultmem, CL_TRUE, 0, sizeof(float)*nvoxelstotal*BLOCK_SIZE2, gbcresult, 0, NULL, NULL);
-  
+  clEnqueueWriteBuffer(queue, gbcresultmem, CL_TRUE, 0, sizeof(float)*nvoxelstotal*BLOCK_SIZE, gbcresult, 0, NULL, NULL);
+
   startseed = 0;
   int width = ntimestotal;
   startseed = 0;
@@ -193,10 +189,10 @@ int main(int argc,char* argv[]) {
   // Let's run
   printf("Running kernel.\n");
   global[0] = nvoxelstotal;
-  global[1] = BLOCK_SIZE2;
+  global[1] = BLOCK_SIZE;
   local[0] = BLOCK_SIZE;
   local[1] = BLOCK_SIZE;
-  int num_of_iterations = nvoxelstotal/BLOCK_SIZE2;
+  int num_of_iterations = nvoxelstotal/BLOCK_SIZE;
 
   printf("Computing %d blocks.\n",num_of_iterations);
   //  num_of_iterations = 1;
@@ -212,11 +208,11 @@ int main(int argc,char* argv[]) {
       calc(matrix2, startseed, ntimestotal, nvoxelstotal);
       printf("\n");
     }
-    startseed += BLOCK_SIZE2;
+    startseed += BLOCK_SIZE;
   }
   if(fpga==1) {
     printf("Reading output from global memory.\n");
-    status = clEnqueueReadBuffer(queue, gbcresultmem, CL_TRUE, 0, sizeof(float)*nvoxelstotal*BLOCK_SIZE2, gbcresult, 1, &event, NULL);
+    status = clEnqueueReadBuffer(queue, gbcresultmem, CL_TRUE, 0, sizeof(float)*nvoxelstotal*BLOCK_SIZE, gbcresult, 1, &event, NULL);
     clWaitForEvents(1, &event);
   }
 
@@ -224,8 +220,8 @@ int main(int argc,char* argv[]) {
 
   for(i=0;i<nvoxels;i++) {
     finalvector[i] = 0;
-    for(j=0;j<BLOCK_SIZE2;j++) {
-      finalvector[i] += gbcresult[i*BLOCK_SIZE2+j];
+    for(j=0;j<BLOCK_SIZE;j++) {
+      finalvector[i] += gbcresult[i*BLOCK_SIZE+j];
     }
     finalvector[i]--;
   }
@@ -240,7 +236,7 @@ void calc(float* matrix, int startseed, int ntimes, int nvoxels)
   int x,y,z;
   float sum;
 
-  for(x=0;x<BLOCK_SIZE2;x++) {
+  for(x=0;x<BLOCK_SIZE;x++) {
     for(y=0;y<nvoxels;y++) {
       sum = 0;
       for(z=0;z<ntimes;z++) {
@@ -248,7 +244,7 @@ void calc(float* matrix, int startseed, int ntimes, int nvoxels)
       }
       if(sum<0)
 	sum = 0;
-      gbcresult[y*BLOCK_SIZE2+x] += sum;
+      gbcresult[y*BLOCK_SIZE+x] += sum;
     }
   }
 }
@@ -291,7 +287,7 @@ bool init_opencl(int nvoxelstotal, int ntimestotal) {
 
   platform = findPlatform("Intel(R) FPGA");
   if(platform == NULL) {
-    printf("ERROR: Unable to find Altera OpenCL platform.\n");
+    printf("ERROR: Unable to find Intel OpenCL platform.\n");
     return false;
   }
 
@@ -301,14 +297,14 @@ bool init_opencl(int nvoxelstotal, int ntimestotal) {
   program = createProgramFromBinary(context, "gbckernel.aocx", &device, numofdevices);
 
   status = clBuildProgram(program, 0, NULL, "", NULL, NULL);
-  
+
   queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &status);
-  
+
   kernel = clCreateKernel(program, "gbc", &status);
 
   matrixmem = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float)*nvoxelstotal*ntimestotal, NULL, &status);
-  gbcresultmem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*nvoxelstotal*BLOCK_SIZE2, NULL, &status);
-  
+  gbcresultmem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*nvoxelstotal*BLOCK_SIZE, NULL, &status);
+
 
   return true;
 }
@@ -327,7 +323,7 @@ float* getImage(char* filename)
   FslReadVolumes(imageIO, imagebuffer, vsize);
   float* buffer = (float*) imagebuffer;
   FslClose(imageIO);
-  
+
   return buffer;
 }
 
@@ -346,12 +342,12 @@ void writeImage()
 	  imagebuffer[x+y*xsize+z*xsize*ysize] = 0;
       }
   }
-  
+
   nifti_image *image;
   float* tmp;
-  
+
   image = nifti_image_read(inputfilename,1);
-  
+
   nifti_set_filenames(image,outputfilename,0,1);
   image->dim[4] = 1;
   image->ndim = 3;
