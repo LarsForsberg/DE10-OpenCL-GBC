@@ -8,7 +8,7 @@ A common research field within RS-fMRI is functional connectivity, where the tem
 
 For a given "seed map", the sum of all voxels correlating positively with the seed voxel will then give the degree of connectivity for the seed voxel. A low value indicates a low connectivity, whereas a high value indicates a high level of connectivity. By calculating the degree of connectivity for each voxel, a "Global Brain Connectivity" (GBC) map is obtained. A commonly used tool for GBC is AFNI's 3dTcorrMap.
 
-This tool (DE10GBC) is an alternative GBC tool for running on a Terasic DE10-Standard, where the calculations are accelerated on the FPGA. A speed comparison show that DE10GBC on the Terasic DE10-Standard is faster than 3dTcorrMap on a MacBook Pro 2016 quad core, even when running the OpenMP version of 3dTCorrMap with 8 threads.
+This tool (DE10GBC) is an alternative GBC tool for running on a Terasic DE10-Standard, where the calculations are accelerated on the FPGA. A speed comparison shows that DE10GBC on the Terasic DE10-Standard is faster than 3dTcorrMap on a MacBook Pro 2016 quad core, even when running the OpenMP version of 3dTCorrMap with 8 threads.
 
 ## Terasic DE10-Standard
 
@@ -36,7 +36,7 @@ Copy the bin directory to a directory of your choice on the DE10-Standard, e.g. 
 
 ## Running
 
-You need a NIfTI 4D image with an fMRI timeseries and optionally a mask image to run this software. You can obtain an example from public databases such as ABIDE. The NIfTI file must not be compressed, so nii.gz files must first be uncompressed before running. Here is a direct link to an example file from ABIDE, that you can use as indata file (after uncompressing it):
+You need a NIfTI 4D image with an fMRI timeseries and optionally a mask image to run this software. You can obtain an example from public databases such as ABIDE. The NIfTI file must not be compressed, so nii.gz files must first be decompressed before running. Here is a direct link to an example file from ABIDE, that you can use as indata file (after decompressing it):
 
 <https://s3.amazonaws.com/fcp-indi/data/Projects/ABIDE_Initiative/Outputs/cpac/filt_global/func_preproc/KKI_0050822_func_preproc.nii.gz>
 
@@ -51,6 +51,6 @@ In the first example, the mask will be automatically calculated by only includin
 
 ## YouTube comparison video
 
-This YouTube video compares the speed between running DE10GBC and AFNI's 3dTcorrMap. The result shows that the DE10GBC custom software requires 392 seconds whereas the OpenMP version of 3dTcorrMap running with 8 threads on a MacBook Pro (2016) requires 423 seconds. The end results are approximately the same.
+This YouTube video compares the speed between running DE10GBC and AFNI's 3dTcorrMap. The result shows that the DE10GBC custom software requires 392 seconds whereas the OpenMP version of 3dTcorrMap running with 8 threads on a MacBook Pro (2016) requires 423 seconds for the given dataset. The end results are the same.
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/N8zh7ErCZ8o/0.jpg)](https://www.youtube.com/watch?v=N8zh7ErCZ8o "Terasic DE10 Standard running OpenCL")
