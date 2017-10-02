@@ -21,12 +21,12 @@
 
  // ACL kernel for adding two input vectors
 
-#define BLOCK_SIZE 24
+#define BLOCK_SIZE 16
 
 //__attribute__((num_compute_units(8)))
 
 __attribute((reqd_work_group_size(BLOCK_SIZE,BLOCK_SIZE,1)))
-__attribute((num_simd_work_items(6)))
+__attribute((num_simd_work_items(4)))
 
 __kernel void gbc(__global float* restrict matrix, // input-data, e.g. 80000x192 
 		  __global float* restrict gbcresult,    // output-data, 32x80000
